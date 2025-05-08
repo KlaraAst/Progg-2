@@ -163,16 +163,24 @@ def sphere_volume_parallel1(n,d,np=10):
     - Compare the time with sequential version.
     '''
 
+    n_list = [n for i in range(np)]
+    d_list = [d for i in range(np)]
+
     start = pc()
     with future.ProcessPoolExecutor() as exe:
         # I want to give the worker a function to run, not the result of running it. Using lambda without parameters passes
         # the function to exe.map() without running it immediately. n and d are already fixed from the outer scope, so no need to repeat or pass them dynamically.
-        res = list(exe.map(sphere_volume,[n for i in range(np)], [d for i in range(np)]))  #range(np) functions, when passed to exe.map these are run in parallell
+        res = exe.map(sphere_volume,n_list,d_list) #range(np) triggers lambda 10 times, and when passed to exe.map these are run in parallell
+        res = list(res)
     stop = pc()
 
+    delta_t = stop-start  #parallell time
     avg = mean(res)
 
+    #print(f'The parallel processing time of splitting processes is: {delta_t} s.')
+
     return avg
+
 
 # ------------------------------------------------------------------------------ #
 
@@ -185,13 +193,20 @@ def sphere_volume_parallel2(n,d,np=10):
 
     # Parallelize computations by splitting nr of points instead of repetitions. We get the sum of sub-volumes from each chunk
 
+    n_split = n // np  # whole value split of total datapoints into 10 different sub-point lists
+    n_list = [n_split for i in range(np)]
+    d_list = [d for i in range(np)]
+
     start = pc()
     with future.ProcessPoolExecutor() as exe:
-        n_split = n // np   #whole value split of total datapoints into 10 different sub-point lists
-        res = list(exe.map(sphere_volume, [n_split for i in range(np)], [d for i in range(np)]))  #runs sub-lists of points np(=10) times
+        res = exe.map(sphere_volume, n_list, d_list)  # 10 st n//np inputs
+        res = list(res)
     stop = pc()
 
+    delta_t = stop - start  # parallell time
     avg = mean(res)
+
+    #print(f'The parallel processing time of splitting number of points is: {delta_t} s.')
 
     return avg
 
@@ -201,17 +216,19 @@ def sphere_volume_parallel2(n,d,np=10):
 def main():
     #Ex1
 
-    print('Small n Vol: ', sphere_volume(10, 3))
-    print('Large n Vol: ', sphere_volume(10000, 3))
-
     dots = [1000, 10000, 100000]
     for n in dots:
-        approximate_pi(n)
+        print(f'Pi approximation with n = {n}: {approximate_pi(n)}')
+
 
     #Ex2
     n = 100000
     d = 2
-    sphere_volume(n,d)
+    #sphere_volume(n,d)
+
+    print('Small n Vol: ', sphere_volume(10, 3))
+    print('Large n Vol: ', sphere_volume(n, d))
+
     print(f"Actual volume of {d} dimentional sphere = {hypersphere_exact(d)}")
 
     n = 100000
@@ -227,8 +244,13 @@ def main():
         sphere_volume(n,d)
     stop = pc()
     print(f"Ex3: Sequential time of {d} and {n}: {stop-start}")
-    print("What is parallel time?")
-    print(f'The parallel processing time of splitting processes is: {sphere_volume_parallel1(n,d,np=10)} s.')
+
+    startP = pc()
+    sphere_volume_parallel1(n,d,np=10)
+    stopP = pc()
+
+    print(f"Ex3: Parallell time: {stopP-startP}")
+
 
     #Ex4
     n = 1000000
@@ -237,9 +259,12 @@ def main():
     sphere_volume(n,d)
     stop = pc()
     print(f"Ex4: Sequential time of {d} and {n}: {stop-start}")
-    print("What is parallel time?")
-    print(f'The parallel processing time of splitting number of points is: {sphere_volume_parallel2(n, d, np=10)} s.')
 
+    startPP = pc()
+    sphere_volume_parallel2(n, d, np=10)
+    stopPP = pc()
+
+    print(f"Ex3: Parallell time: {stopPP - startPP}")
 
 
 

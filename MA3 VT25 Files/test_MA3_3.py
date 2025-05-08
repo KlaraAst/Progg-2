@@ -14,7 +14,7 @@ class Test(unittest.TestCase):
             sphere_volume(n,d)
         stop = pc()
         seq = stop - start
-        print('2')
+
         start = pc()
         app_vol = sphere_volume_parallel1(n, d, np)
         print(app_vol)
