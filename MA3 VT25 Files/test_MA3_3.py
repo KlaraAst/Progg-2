@@ -14,7 +14,7 @@ class Test(unittest.TestCase):
             sphere_volume(n,d)
         stop = pc()
         seq = stop - start
-
+        print('2')
         start = pc()
         app_vol = sphere_volume_parallel1(n, d, np)
         print(app_vol)
@@ -24,3 +24,6 @@ class Test(unittest.TestCase):
         self.assertLess(1.6, app_vol)
         self.assertLess(app_vol, 2.2)
         self.assertLess(par, seq)
+
+if __name__ == "__main__":
+    unittest.main()
