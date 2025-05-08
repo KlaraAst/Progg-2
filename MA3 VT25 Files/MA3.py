@@ -167,7 +167,7 @@ def sphere_volume_parallel1(n,d,np=10):
     with future.ProcessPoolExecutor() as exe:
         # I want to give the worker a function to run, not the result of running it. Using lambda without parameters passes
         # the function to exe.map() without running it immediately. n and d are already fixed from the outer scope, so no need to repeat or pass them dynamically.
-        res = [exe.map(lambda _: sphere_volume(n,d),range(np))]  #range(np) triggers lambda 10 times, and when passed to exe.map these are run in parallell
+        res = [exe.map(sphere_volume,[n for i in range(np)], [d for i in range(np)])]  #range(np) functions, when passed to exe.map these are run in parallell
     stop = pc()
 
     return stop-start   #parallell time
@@ -187,7 +187,7 @@ def sphere_volume_parallel2(n,d,np=10):
     start = pc()
     with future.ProcessPoolExecutor() as exe:
         n_split = n // np   #whole value split of total datapoints into 10 different sub-point lists
-        res = [exe.map(lambda _: sphere_volume(n_split,d),range(np))]   #runs sub-lists of points np(=10) times
+        res = [exe.map(sphere_volume, [n_split for i in range(np)], [d for i in range(np)])]  #runs sub-lists of points np(=10) times
     stop = pc()
 
     return stop-start
